@@ -102,8 +102,8 @@ class _InicioPageState extends State<InicioPage> {
           elevation: 0.0,
           child: ListTile(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
-            leading: const Icon(Icons.article),
-            title: Text(data![index].title!),
+            leading: Icon(Icons.article, color: data![index].isCompleted == 1 ? Colors.green : null,),
+            title: Text(data[index].title!),
             //subtitle: Text(data[index].dueDate!),
             subtitle: Text(capitalize(formatter.format(DateTime.parse(data[index].dueDate!)))),
             onTap: () {

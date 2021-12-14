@@ -1,7 +1,11 @@
 
 import 'package:admin_tareas/src/providers/tareas_provider.dart';
-import 'package:admin_tareas/src/utils/variables_entorno_utils.dart';
+import 'package:admin_tareas/src/utils/fecha_util.dart';
+import 'package:admin_tareas/src/utils/variables_entorno_util.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:intl/intl.dart';
+import 'package:ndialog/ndialog.dart';
 import 'package:textfield_tags/textfield_tags.dart';
 
 class NuevaTareaPage extends StatefulWidget {
@@ -27,6 +31,16 @@ class _NuevaTareaPageState extends State<NuevaTareaPage> {
   TextEditingController _myControllerDescripcion = TextEditingController(); 
 
   List<String> _listaTags = [];
+
+  DateTime _dateSelected = DateTime.now();
+
+  @override
+  void initState() {
+    super.initState();
+
+    _myControllerFecha.text = DateFormat.yMMMMEEEEd('es_ES').format(_dateSelected);
+
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -87,12 +101,28 @@ class _NuevaTareaPageState extends State<NuevaTareaPage> {
               child: Text('Fecha:', style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),),
             ),
             TextField(
+              enableInteractiveSelection: false,
               controller: _myControllerFecha,
               decoration: const InputDecoration(
                 contentPadding: EdgeInsets.symmetric(horizontal: 4.0, vertical: 8.0),
                 isDense: true,
+                hintText: 'dd/mm/yyyy',
                 //labelText: 'Fecha',
               ),
+              onTap: () async {
+                FocusScope.of(context).requestFocus(FocusNode());
+
+                final picked = await FechaUtil(context: context, dateSelected: _dateSelected).getObtenerFecha();
+
+                //print('Fecha seleccionada: $picked');
+                if (picked != null) {
+                  _dateSelected = picked;
+                  _myControllerFecha.text = DateFormat.yMMMMEEEEd('es_ES').format(_dateSelected);
+                  
+                  setState(() { });
+                }
+
+              },
             ),
           ],
         ),
@@ -218,14 +248,21 @@ class _NuevaTareaPageState extends State<NuevaTareaPage> {
         Container(
           //padding: const EdgeInsets.only(left: 15.0, right: 15.0, top: 5.0, bottom: 5.0),
           width: MediaQuery.of(context).size.width,
-          child: RaisedButton(
+          child: OutlineButton(
             padding: const EdgeInsets.all(15.0),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0)),
             color: Colors.blue,
-            textColor: Colors.white,
+            textColor: Colors.blue,
             child: const Text('Registrar nueva tarea'),
             onPressed: () async {
 
+              ProgressDialog progressDialog = ProgressDialog(context, 
+                title:const Text("Creando"), 
+                message:const Text("Espera por favor...")
+              );
+              progressDialog.show();
+
+              
               // Vamos a sacar todos los valores de nuestro arreglo de Tags
               // y los iremos concatenado cada unos de los Tags con una (,) de separador
               String _tags = '';
@@ -239,17 +276,17 @@ class _NuevaTareaPageState extends State<NuevaTareaPage> {
 
               // Preparando la consulta y enviado un Map como parametros de la peticon del API
               final _respuesta = await _tareasProvider.setTarea({
-                'token' : VariableEntornoUtils.TOKEN_PARAMS,
+                'token' : VariableEntornoUtils.TOKEN,
                 'title' : _myControllerTitulo.text,
                 'is_completed' : _checkBoxCompleta ? '1' : '0',
-                'due_date' : '2021-12-12', //_myControllerFecha.text
+                'due_date' : DateFormat('yyyy-MM-dd','es_ES').format(_dateSelected), //'2021-12-12', //_myControllerFecha.text
                 'comments' : _myControllerComentarios.text,
                 'description' : _myControllerDescripcion.text,
                 'tags' : _tags
               });
 
               if (_respuesta['status'] != 200) { // Los datos fueron registrados
-
+                progressDialog.dismiss();
                 _cargarDatos();
 
                 return showDialog<void>(
@@ -279,6 +316,7 @@ class _NuevaTareaPageState extends State<NuevaTareaPage> {
                 );
                 
               } else { // Problemas al registrar los datos
+                progressDialog.dismiss();
                 return showDialog<void>(
                   context: context,
                   barrierDismissible: false,

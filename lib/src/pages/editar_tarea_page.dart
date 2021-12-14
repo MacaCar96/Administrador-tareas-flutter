@@ -1,9 +1,13 @@
 
-import 'package:admin_tareas/src/models/tareas_model.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:ndialog/ndialog.dart';
 import 'package:textfield_tags/textfield_tags.dart';
+
+import 'package:admin_tareas/src/utils/fecha_util.dart';
+import 'package:admin_tareas/src/models/tareas_model.dart';
 import 'package:admin_tareas/src/providers/tareas_provider.dart';
-import 'package:admin_tareas/src/utils/variables_entorno_utils.dart';
+import 'package:admin_tareas/src/utils/variables_entorno_util.dart';
 
 class EditarTareaPage extends StatefulWidget {
   const EditarTareaPage({ Key? key }) : super(key: key);
@@ -13,28 +17,32 @@ class EditarTareaPage extends StatefulWidget {
 }
 
 class _EditarTareaPageState extends State<EditarTareaPage> {
-  //late Map<String, dynamic> _arg;
-  late Function _cargarDatos;
-  String taskDd = '';
 
-  final _tareasProvider = TareasProvider();
+  final _tareasProvider = TareasProvider(); // Creamos la instancia de TareasProvider
+  late Function _cargarDatos; // Creamos un objeto de tipo Funcion
 
-  bool _checkBoxCompleta = false;
-
+  // Creamos todos los objetos de tipo TextEditingController
+  // para nuetros TextField
   TextEditingController _myControllerTitulo = TextEditingController();
   TextEditingController _myControllerFecha = TextEditingController(); 
   TextEditingController _myControllerComentarios = TextEditingController(); 
   TextEditingController _myControllerDescripcion = TextEditingController(); 
 
-  List<String> _listaTags = [];
+  String taskId = ''; // Creamos objeto de tipo String para guardar el task_id
+  bool _checkBoxCompleta = false; // Creamos un objeto de tipo bool para manajer el estado de Checkbox de la tarea finalizada
+  
+  List<String> _listaTags = []; // Creamos una lista de tipo String para guardar los Tags
+  DateTime _fechaSeleccionada = DateTime.now(); // Creamos una instancia para obtener la fecha actual
+  bool _statusInformacionRecuperada = false; // Creamos un objeto de tipo bool para manejar el estado de la información recuperada
   
   @override
   Widget build(BuildContext context) {
-    var _arg = ModalRoute.of(context)?.settings.arguments;
-    Map<String, dynamic>? m = _arg as Map<String, dynamic>?;
 
-    _cargarDatos = m!['cargar_datos']; // cargamos los datos
-    taskDd = m['task_id'];
+    var _arg = ModalRoute.of(context)?.settings.arguments; // Recuperamos el objeto Map que envimos de la vista anterior
+    Map<String, dynamic>? m = _arg as Map<String, dynamic>?; // El objeto recuperado lo guardamos en un nuevo objeto Map para poder acceder a sus datos
+
+    _cargarDatos = m!['cargar_datos']; // Recuperamos la Funcion cargar_datos
+    taskId = m['task_id']; // Recuperamos el task_id
 
     return Scaffold(
       appBar: AppBar(
@@ -51,7 +59,7 @@ class _EditarTareaPageState extends State<EditarTareaPage> {
         title: const Text('Editar tarea'),
       ),
       body: FutureBuilder(
-        future: _tareasProvider.getTareaId(taskDd),
+        future: _tareasProvider.getTareaId(taskId),
         builder: (BuildContext context, AsyncSnapshot<Tareas?> snapshot) {
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator(),);
@@ -71,14 +79,26 @@ class _EditarTareaPageState extends State<EditarTareaPage> {
 
   Widget _crearBody(Tareas? tarea) {
 
-    _myControllerTitulo.text = tarea!.title!;
-    _myControllerFecha.text = tarea.dueDate!;
-    _myControllerComentarios.text = tarea.comments!;
-    _myControllerDescripcion.text = tarea.description!;
+    
+  
+    // Validamos la carga de información recuperada
+    if (!_statusInformacionRecuperada) {
 
-    _listaTags = tarea.tags!.split(',');
+      // Rellenamos los campos con la informació recuperada
+      _myControllerTitulo.text = tarea!.title!;
 
-    _checkBoxCompleta = tarea.isCompleted == 1 ? true : false;
+      _fechaSeleccionada = DateTime.parse(tarea.dueDate!);
+      _myControllerFecha.text = DateFormat.yMMMMEEEEd('es_ES').format(DateTime.parse(tarea.dueDate!));
+
+       _myControllerComentarios.text = tarea.comments!;
+      _myControllerDescripcion.text = tarea.description!;
+      _listaTags = tarea.tags!.split(',');
+      _checkBoxCompleta = tarea.isCompleted == 1 ? true : false;
+
+      _statusInformacionRecuperada = true;
+
+    }
+    
 
     return ListView(
       padding: const EdgeInsets.all(15.0),
@@ -117,6 +137,19 @@ class _EditarTareaPageState extends State<EditarTareaPage> {
                 isDense: true,
                 //labelText: 'Fecha',
               ),
+              onTap: () async {
+                FocusScope.of(context).requestFocus(FocusNode());
+
+                final picked = await FechaUtil(context: context, dateSelected: _fechaSeleccionada).getObtenerFecha();
+
+                //print('Fecha seleccionada: $picked');
+                if (picked != null) {
+                  _fechaSeleccionada = picked;
+                  _myControllerFecha.text = DateFormat.yMMMMEEEEd('es_ES').format(_fechaSeleccionada);
+                  
+                  setState(() { });
+                }
+              },
             ),
           ],
         ),
@@ -245,55 +278,24 @@ class _EditarTareaPageState extends State<EditarTareaPage> {
               child: Container(
                 //padding: const EdgeInsets.only(left: 15.0, right: 15.0, top: 5.0, bottom: 5.0),
                 //width: MediaQuery.of(context).size.width,
-                child: RaisedButton(
+                child: OutlineButton(
                   padding: const EdgeInsets.all(15.0),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0)),
-                  color: Colors.red,
-                  textColor: Colors.white,
+                  highlightedBorderColor: Colors.red,
+                  textColor: Colors.red,
                   child: const Text('Eliminar'),
                   onPressed: () async {
-            
-                  }
-                ),
-              ),
-            ),
-            SizedBox(width: 15.0,),
-            Expanded(
-              child: Container(
-                //padding: const EdgeInsets.only(left: 15.0, right: 15.0, top: 5.0, bottom: 5.0),
-                //width: MediaQuery.of(context).size.width,
-                child: RaisedButton(
-                  padding: const EdgeInsets.all(15.0),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0)),
-                  color: Colors.blue,
-                  textColor: Colors.white,
-                  child: const Text('Guardar'),
-                  onPressed: () async {
-            
-                    // Vamos a sacar todos los valores de nuestro arreglo de Tags
-                    // y los iremos concatenado cada unos de los Tags con una (,) de separador
-                    String _tags = '';
-                    for (var i = 0; i < _listaTags.length; i++) {
-                      if (i == 0) {
-                        _tags = '${_listaTags[i]}';
-                      } else {
-                        _tags = '$_tags,${_listaTags[i]}';
-                      }
-                    }
-            
-                    // Preparando la consulta y enviado un Map como parametros de la peticon del API
-                    final _respuesta = await _tareasProvider.setTarea({
-                      'token' : VariableEntornoUtils.TOKEN_PARAMS,
-                      'title' : _myControllerTitulo.text,
-                      'is_completed' : _checkBoxCompleta ? '1' : '0',
-                      'due_date' : '2021-12-12', //_myControllerFecha.text
-                      'comments' : _myControllerComentarios.text,
-                      'description' : _myControllerDescripcion.text,
-                      'tags' : _tags
-                    });
+
+                    ProgressDialog progressDialog = ProgressDialog(context, 
+                      title:const Text("Eliminando"), 
+                      message:const Text("Espera por favor...")
+                    );
+                    progressDialog.show();
+
+                    final _respuesta = await _tareasProvider.setTareaIdEliminar('${tarea?.id}');
             
                     if (_respuesta['status'] != 200) { // Los datos fueron registrados
-            
+                      progressDialog.dismiss();
                       _cargarDatos();
             
                       return showDialog<void>(
@@ -323,6 +325,113 @@ class _EditarTareaPageState extends State<EditarTareaPage> {
                       );
                       
                     } else { // Problemas al registrar los datos
+                      progressDialog.dismiss();
+                      return showDialog<void>(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: const Text('Notificación'),
+                            content: SingleChildScrollView(
+                              child: ListBody(
+                                children: <Widget>[
+                                  Text('${_respuesta['mensaje']}'),
+                                ],
+                              ),
+                            ),
+                            actions: <Widget>[
+                              TextButton(
+                                child: const Text('Aceptar'),
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    }
+            
+                  }
+                ),
+              ),
+            ),
+            const SizedBox(width: 15.0,),
+            Expanded(
+              child: Container(
+                //padding: const EdgeInsets.only(left: 15.0, right: 15.0, top: 5.0, bottom: 5.0),
+                //width: MediaQuery.of(context).size.width,
+                child: OutlineButton(
+                  padding: const EdgeInsets.all(15.0),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0)),
+                  color: Colors.blue,
+                  textColor: Colors.blue,
+                  child: const Text('Guardar'),
+                  onPressed: () async {
+
+                    ProgressDialog progressDialog = ProgressDialog(context, 
+                      title:const Text("Guardando"), 
+                      message:const Text("Espera por favor...")
+                    );
+                    progressDialog.show();
+            
+                    // Vamos a sacar todos los valores de nuestro arreglo de Tags
+                    // y los iremos concatenado cada unos de los Tags con una (,) de separador
+                    String _tags = '';
+                    for (var i = 0; i < _listaTags.length; i++) {
+                      if (i == 0) {
+                        _tags = '${_listaTags[i]}';
+                      } else {
+                        _tags = '$_tags,${_listaTags[i]}';
+                      }
+                    }
+            
+                    // Preparando la consulta y enviado un Map como parametros de la peticon del API
+                    final _respuesta = await _tareasProvider.setTareaIdActualizar(
+                      '${tarea?.id}' ,
+                      {
+                        'token' : VariableEntornoUtils.TOKEN,
+                        'title' : _myControllerTitulo.text,
+                        'is_completed' : _checkBoxCompleta ? '1' : '0',
+                        'due_date' : DateFormat('yyyy-MM-dd','es_ES').format(_fechaSeleccionada),
+                        'comments' : _myControllerComentarios.text,
+                        'description' : _myControllerDescripcion.text,
+                        'tags' : _tags
+                      }
+                    );
+            
+                    if (_respuesta['status'] != 200) { // Los datos fueron registrados
+                      progressDialog.dismiss();
+                      _cargarDatos();
+            
+                      return showDialog<void>(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: const Text('Notificación'),
+                            content: SingleChildScrollView(
+                              child: ListBody(
+                                children: <Widget>[
+                                  Text('${_respuesta['mensaje']}'),
+                                ],
+                              ),
+                            ),
+                            actions: <Widget>[
+                              TextButton(
+                                child: const Text('Aceptar'),
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                  Navigator.of(context).pop();
+                                },
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                      
+                    } else { // Problemas al registrar los datos
+                      progressDialog.dismiss();
                       return showDialog<void>(
                         context: context,
                         barrierDismissible: false,
