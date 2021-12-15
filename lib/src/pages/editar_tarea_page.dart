@@ -36,6 +36,8 @@ class _EditarTareaPageState extends State<EditarTareaPage> {
   DateTime _fechaSeleccionada = DateTime.now(); // Creamos una instancia para obtener la fecha actual
   bool _statusInformacionRecuperada = false; // Creamos un objeto de tipo bool para manejar el estado de la información recuperada
   
+  String capitalize(String s) => s[0].toUpperCase() + s.substring(1); // Método para poner la primera letra mayúscula de algún texto
+
   @override
   Widget build(BuildContext context) {
 
@@ -87,7 +89,7 @@ class _EditarTareaPageState extends State<EditarTareaPage> {
       _myControllerTitulo.text = tarea!.title!;
 
       _fechaSeleccionada = DateTime.parse(tarea.dueDate!);
-      _myControllerFecha.text = DateFormat.yMMMMEEEEd('es_ES').format(DateTime.parse(tarea.dueDate!));
+      _myControllerFecha.text = capitalize(DateFormat.yMMMMEEEEd('es_ES').format(DateTime.parse(tarea.dueDate!)));
 
        _myControllerComentarios.text = tarea.comments!;
       _myControllerDescripcion.text = tarea.description!;
@@ -112,6 +114,7 @@ class _EditarTareaPageState extends State<EditarTareaPage> {
               child: Text('Titulo:', style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),),
             ),
             TextField(
+              textCapitalization: TextCapitalization.sentences,
               controller: _myControllerTitulo,
               decoration: const InputDecoration(
                 contentPadding: EdgeInsets.symmetric(horizontal: 4.0, vertical: 8.0),
@@ -132,6 +135,7 @@ class _EditarTareaPageState extends State<EditarTareaPage> {
               child: Text('Fecha:', style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),),
             ),
             TextField(
+              textCapitalization: TextCapitalization.sentences,
               controller: _myControllerFecha,
               decoration: const InputDecoration(
                 contentPadding: EdgeInsets.symmetric(horizontal: 4.0, vertical: 8.0),
@@ -146,7 +150,7 @@ class _EditarTareaPageState extends State<EditarTareaPage> {
 
                 if (picked != null) { // Comprobamos de que se haya seleccionado alguna fecha
                   _fechaSeleccionada = picked;
-                  _myControllerFecha.text = DateFormat.yMMMMEEEEd('es_ES').format(_fechaSeleccionada); // Pasamos la fecha seleccionada al campo fecha
+                  _myControllerFecha.text = capitalize(DateFormat.yMMMMEEEEd('es_ES').format(_fechaSeleccionada)); // Pasamos la fecha seleccionada al campo fecha
                   
                   setState(() { });
                 }
@@ -166,6 +170,7 @@ class _EditarTareaPageState extends State<EditarTareaPage> {
             ),
             const SizedBox(height: 5.0,),
             TextField(
+              textCapitalization: TextCapitalization.sentences,
               controller: _myControllerComentarios,
               maxLines: 2,
               decoration: const InputDecoration(
@@ -191,6 +196,7 @@ class _EditarTareaPageState extends State<EditarTareaPage> {
             ),
             const SizedBox(height: 5.0,),
             TextField(
+              textCapitalization: TextCapitalization.sentences,
               controller: _myControllerDescripcion,
               maxLines: 2,
               decoration: const InputDecoration(

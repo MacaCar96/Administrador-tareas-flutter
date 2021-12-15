@@ -80,7 +80,7 @@ class _MenuVerticalState extends State<MenuVertical> {
               color: widget.isPendientes ? Colors.black12 : null,
               child: ListTile(
                 leading: const Icon(Icons.pending_actions_rounded),
-                title: const Text('Perndientes'),
+                title: const Text('Pendientes'),
                 dense: true,
                 onTap: () {
                   Navigator.pop(context);

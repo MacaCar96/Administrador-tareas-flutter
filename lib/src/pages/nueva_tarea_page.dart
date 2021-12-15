@@ -34,12 +34,14 @@ class _NuevaTareaPageState extends State<NuevaTareaPage> {
 
   DateTime _fechaSeleccionada = DateTime.now(); // Creamos una instancia para obtener la fecha actual
 
+  String capitalize(String s) => s[0].toUpperCase() + s.substring(1); // Método para poner la primera letra mayúscula de algún texto
+
   @override
   void initState() {
     super.initState();
 
     // Inicializamos la fecha al día de hpy
-    _myControllerFecha.text = DateFormat.yMMMMEEEEd('es_ES').format(_fechaSeleccionada);
+    _myControllerFecha.text = capitalize(DateFormat.yMMMMEEEEd('es_ES').format(_fechaSeleccionada));
 
   }
 
@@ -81,6 +83,7 @@ class _NuevaTareaPageState extends State<NuevaTareaPage> {
               child: Text('Titulo:', style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),),
             ),
             TextField(
+              textCapitalization: TextCapitalization.sentences,
               controller: _myControllerTitulo,
               decoration: const InputDecoration(
                 contentPadding: EdgeInsets.symmetric(horizontal: 4.0, vertical: 8.0),
@@ -103,6 +106,7 @@ class _NuevaTareaPageState extends State<NuevaTareaPage> {
             TextField(
               enableInteractiveSelection: false,
               controller: _myControllerFecha,
+              textCapitalization: TextCapitalization.sentences,
               decoration: const InputDecoration(
                 contentPadding: EdgeInsets.symmetric(horizontal: 4.0, vertical: 8.0),
                 isDense: true,
@@ -117,7 +121,7 @@ class _NuevaTareaPageState extends State<NuevaTareaPage> {
 
                 if (picked != null) { // Comprobamos de que se haya seleccionado alguna fecha
                   _fechaSeleccionada = picked;
-                  _myControllerFecha.text = DateFormat.yMMMMEEEEd('es_ES').format(_fechaSeleccionada); // Pasamos la fecha seleccionada al campo fecha
+                  _myControllerFecha.text = capitalize(DateFormat.yMMMMEEEEd('es_ES').format(_fechaSeleccionada)); // Pasamos la fecha seleccionada al campo fecha
                    
                   setState(() { });
                 }
@@ -138,6 +142,7 @@ class _NuevaTareaPageState extends State<NuevaTareaPage> {
             ),
             const SizedBox(height: 5.0,),
             TextField(
+              textCapitalization: TextCapitalization.sentences,
               controller: _myControllerComentarios,
               maxLines: 2,
               decoration: const InputDecoration(
@@ -161,6 +166,7 @@ class _NuevaTareaPageState extends State<NuevaTareaPage> {
             ),
             const SizedBox(height: 5.0,),
             TextField(
+              textCapitalization: TextCapitalization.sentences,
               controller: _myControllerDescripcion,
               maxLines: 2,
               decoration: const InputDecoration(
