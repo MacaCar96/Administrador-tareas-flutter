@@ -1,9 +1,9 @@
 
 import 'package:admin_tareas/src/providers/tareas_provider.dart';
 import 'package:admin_tareas/src/utils/fecha_util.dart';
+import 'package:admin_tareas/src/utils/mensaje_error_util.dart';
 import 'package:admin_tareas/src/utils/variables_entorno_util.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart';
 import 'package:ndialog/ndialog.dart';
 import 'package:textfield_tags/textfield_tags.dart';
@@ -18,37 +18,38 @@ class NuevaTareaPage extends StatefulWidget {
 
 class _NuevaTareaPageState extends State<NuevaTareaPage> {
 
-  //late Map<String, dynamic> _arg;
-  late Function _cargarDatos;
+  final _tareasProvider = TareasProvider(); // Creamos la instancia de TareasProvider
+  late Function _cargarDatos; // Creamos un objeto de tipo Funcion
 
-  final _tareasProvider = TareasProvider();
+  bool _checkBoxCompleta = false; // Creamos un objeto de tipo bool para manajer el estado de Checkbox de la tarea finalizada
 
-  bool _checkBoxCompleta = false;
-
+  // Creamos todos los objetos de tipo TextEditingController
+  // para nuetros TextField
   TextEditingController _myControllerTitulo = TextEditingController();
   TextEditingController _myControllerFecha = TextEditingController(); 
   TextEditingController _myControllerComentarios = TextEditingController(); 
   TextEditingController _myControllerDescripcion = TextEditingController(); 
 
-  List<String> _listaTags = [];
+  List<String> _listaTags = []; // Creamos una lista de tipo String para guardar los Tags
 
-  DateTime _dateSelected = DateTime.now();
+  DateTime _fechaSeleccionada = DateTime.now(); // Creamos una instancia para obtener la fecha actual
 
   @override
   void initState() {
     super.initState();
 
-    _myControllerFecha.text = DateFormat.yMMMMEEEEd('es_ES').format(_dateSelected);
+    // Inicializamos la fecha al día de hpy
+    _myControllerFecha.text = DateFormat.yMMMMEEEEd('es_ES').format(_fechaSeleccionada);
 
   }
 
   @override
   Widget build(BuildContext context) {
 
-    var _arg = ModalRoute.of(context)?.settings.arguments;
-    Map<String, dynamic>? m = _arg as Map<String, dynamic>?;
+    var _arg = ModalRoute.of(context)?.settings.arguments; // Recuperamos el objeto Map que envimos de la vista anterior
+    Map<String, dynamic>? m = _arg as Map<String, dynamic>?; // El objeto recuperado lo guardamos en un nuevo objeto Map para poder acceder a sus datos
 
-    _cargarDatos = m!['cargar_datos']; // cargamos los datos
+    _cargarDatos = m!['cargar_datos']; // Recuperamos la Funcion cargar_datos
 
     return Scaffold(
       appBar: AppBar(
@@ -56,24 +57,22 @@ class _NuevaTareaPageState extends State<NuevaTareaPage> {
         foregroundColor: Colors.black,
         elevation: 0.0,
         automaticallyImplyLeading: false,
-        leading: IconButton(
+        leading: IconButton( // Personalizamos el icono de regresar por el icono de close(X)
           icon: const Icon(Icons.close),
-          onPressed: () {
-            Navigator.pop(context);
-          }, 
+          onPressed: () => Navigator.pop(context), 
         ),
         title: const Text('Nueva tarea'),
       ),
-      body: _crearBody(),
+      body: _crearBody(), 
     );
   }
 
   Widget _crearBody() {
-
     return ListView(
       padding: const EdgeInsets.all(15.0),
       children: [
         
+        // Campo del titulo
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -93,6 +92,7 @@ class _NuevaTareaPageState extends State<NuevaTareaPage> {
         ),
         const SizedBox(height: 25.0,),
 
+        // Campo de la fecha
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -106,19 +106,19 @@ class _NuevaTareaPageState extends State<NuevaTareaPage> {
               decoration: const InputDecoration(
                 contentPadding: EdgeInsets.symmetric(horizontal: 4.0, vertical: 8.0),
                 isDense: true,
-                hintText: 'dd/mm/yyyy',
+                //hintText: 'dd/mm/yyyy',
                 //labelText: 'Fecha',
               ),
               onTap: () async {
-                FocusScope.of(context).requestFocus(FocusNode());
+                FocusScope.of(context).requestFocus(FocusNode()); // Anulamos la salida del techado
 
-                final picked = await FechaUtil(context: context, dateSelected: _dateSelected).getObtenerFecha();
+                // Abrimos el calendario con la funcion de FechaUtil que creamos para obtener la fecha seleccionada
+                final picked = await FechaUtil(context: context, dateSelected: _fechaSeleccionada).getObtenerFecha();
 
-                //print('Fecha seleccionada: $picked');
-                if (picked != null) {
-                  _dateSelected = picked;
-                  _myControllerFecha.text = DateFormat.yMMMMEEEEd('es_ES').format(_dateSelected);
-                  
+                if (picked != null) { // Comprobamos de que se haya seleccionado alguna fecha
+                  _fechaSeleccionada = picked;
+                  _myControllerFecha.text = DateFormat.yMMMMEEEEd('es_ES').format(_fechaSeleccionada); // Pasamos la fecha seleccionada al campo fecha
+                   
                   setState(() { });
                 }
 
@@ -128,6 +128,7 @@ class _NuevaTareaPageState extends State<NuevaTareaPage> {
         ),
         const SizedBox(height: 25.0,),
 
+        // Campo comentario
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -142,16 +143,15 @@ class _NuevaTareaPageState extends State<NuevaTareaPage> {
               decoration: const InputDecoration(
                 fillColor: Color(0xFFE5E7E9),
                 filled: true,
-                //border: InputBorder.none,
                 contentPadding: EdgeInsets.all(8.0),
                 isDense: true,
-                //disabledBorder: InputBorder.none
               ),
             ),
           ],
         ),
         const SizedBox(height: 25.0,),
 
+        // Campo descripción
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -166,16 +166,15 @@ class _NuevaTareaPageState extends State<NuevaTareaPage> {
               decoration: const InputDecoration(
                 fillColor: Color(0xFFE5E7E9),
                 filled: true,
-                //border: InputBorder.none,
                 contentPadding: EdgeInsets.all(8.0),
                 isDense: true,
-                //disabledBorder: InputBorder.none
               ),
             ),
           ],
         ),
         const SizedBox(height: 25.0,),
 
+        // Campo de tags
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -188,7 +187,6 @@ class _NuevaTareaPageState extends State<NuevaTareaPage> {
               initialTags: _listaTags,
               tagsStyler: TagsStyler(
                 tagTextStyle: const TextStyle(fontWeight: FontWeight.normal),
-                //tagDecoration: BoxDecoration(color: Colors.blue[300], borderRadius: BorderRadius.circular(0.0), ),
                 tagDecoration: BoxDecoration(
                   color: Colors.white,
                   border: Border.all(
@@ -198,9 +196,7 @@ class _NuevaTareaPageState extends State<NuevaTareaPage> {
                     Radius.circular(20.0),
                   ),
                 ),
-                //tagCancelIconPadding: const EdgeInsets.all(0.0),
                 tagCancelIcon: Icon(Icons.cancel, size: 18.0, color: Colors.blue[900]),
-                //tagPadding: const EdgeInsets.all(4.0)
                 tagPadding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
               ),
               textFieldStyler: TextFieldStyler(
@@ -209,30 +205,14 @@ class _NuevaTareaPageState extends State<NuevaTareaPage> {
                 textFieldBorder: const UnderlineInputBorder(),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 8.0),
               ),
-              onTag: (tag) {
-                
-                _listaTags.add(tag);
-                print('Resultado de Tags: ${_listaTags.toString()}');
-
-              },
-              onDelete: (tag) {
-
-                _listaTags.remove(tag);
-                print('Tag eliminado: $tag');
-                print('Resultado de Tags: ${_listaTags.toString()}');
-
-              },
-              validator: (tag){
-                /* if(tag.length>15){
-                  return "hey that's too long";
-                }
-                return null; */
-              } 
+              onTag: (tag) { _listaTags.add(tag); }, // Recuperamos el nuevo tag
+              onDelete: (tag) { _listaTags.remove(tag); }, // Eliminamos el tag de la lista
             )
           ],
         ),
         const SizedBox(height: 15.0,),
 
+        // Campo de tarea terminada
         CheckboxListTile(
           controlAffinity: ListTileControlAffinity.leading,
           title: const Text('Tarea terminada',  style: TextStyle(fontSize: 13.0, fontWeight: FontWeight.w300)),
@@ -245,6 +225,7 @@ class _NuevaTareaPageState extends State<NuevaTareaPage> {
         ),
         const SizedBox(height: 25.0,),
 
+        // Botón de registrar
         Container(
           //padding: const EdgeInsets.only(left: 15.0, right: 15.0, top: 5.0, bottom: 5.0),
           width: MediaQuery.of(context).size.width,
@@ -254,102 +235,60 @@ class _NuevaTareaPageState extends State<NuevaTareaPage> {
             color: Colors.blue,
             textColor: Colors.blue,
             child: const Text('Registrar nueva tarea'),
-            onPressed: () async {
-
-              ProgressDialog progressDialog = ProgressDialog(context, 
-                title:const Text("Creando"), 
-                message:const Text("Espera por favor...")
-              );
-              progressDialog.show();
-
-              
-              // Vamos a sacar todos los valores de nuestro arreglo de Tags
-              // y los iremos concatenado cada unos de los Tags con una (,) de separador
-              String _tags = '';
-              for (var i = 0; i < _listaTags.length; i++) {
-                if (i == 0) {
-                  _tags = '${_listaTags[i]}';
-                } else {
-                  _tags = '$_tags,${_listaTags[i]}';
-                }
-              }
-
-              // Preparando la consulta y enviado un Map como parametros de la peticon del API
-              final _respuesta = await _tareasProvider.setTarea({
-                'token' : VariableEntornoUtils.TOKEN,
-                'title' : _myControllerTitulo.text,
-                'is_completed' : _checkBoxCompleta ? '1' : '0',
-                'due_date' : DateFormat('yyyy-MM-dd','es_ES').format(_dateSelected), //'2021-12-12', //_myControllerFecha.text
-                'comments' : _myControllerComentarios.text,
-                'description' : _myControllerDescripcion.text,
-                'tags' : _tags
-              });
-
-              if (_respuesta['status'] != 200) { // Los datos fueron registrados
-                progressDialog.dismiss();
-                _cargarDatos();
-
-                return showDialog<void>(
-                  context: context,
-                  barrierDismissible: false,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: const Text('Notificación'),
-                      content: SingleChildScrollView(
-                        child: ListBody(
-                          children: <Widget>[
-                            Text('${_respuesta['mensaje']}'),
-                          ],
-                        ),
-                      ),
-                      actions: <Widget>[
-                        TextButton(
-                          child: const Text('Aceptar'),
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                            Navigator.of(context).pop();
-                          },
-                        ),
-                      ],
-                    );
-                  },
-                );
-                
-              } else { // Problemas al registrar los datos
-                progressDialog.dismiss();
-                return showDialog<void>(
-                  context: context,
-                  barrierDismissible: false,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: const Text('Notificación'),
-                      content: SingleChildScrollView(
-                        child: ListBody(
-                          children: <Widget>[
-                            Text('${_respuesta['mensaje']}'),
-                          ],
-                        ),
-                      ),
-                      actions: <Widget>[
-                        TextButton(
-                          child: const Text('Aceptar'),
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                        ),
-                      ],
-                    );
-                  },
-                );
-              }
-
-            }
+            onPressed: () async => _onCallback() // Mandamos a llamar al metodo _onCallback 
           ),
         )
         
       ],
     );
 
+  }
+
+  void _onCallback() async {
+    if (_myControllerTitulo.text.isEmpty) { // Validamos el campo del titulo
+      return MensajeErrorUtil(context: context, mensaje: 'El campo del titulo es requerido.').showMensaje(); // Mostramos el mensaje de error
+    }
+
+    // Preparamos nuestros ProgressDialog para animar el progreso de la carga
+    ProgressDialog progressDialog = ProgressDialog(context, 
+      title:const Text("Creando"), 
+      message:const Text("Espera por favor...")
+    );
+
+    progressDialog.show(); // Mostramos el ProgressDialog
+
+    
+    // Vamos a sacar todos los valores de nuestro arreglo de Tags
+    // y los iremos concatenado cada unos de los Tags con una (,) de separador
+    String _tags = '';
+    for (var i = 0; i < _listaTags.length; i++) {
+      if (i == 0) {
+        _tags = _listaTags[i];
+      } else {
+        _tags = '$_tags,${_listaTags[i]}';
+      }
+    }
+
+    // Preparando la consulta y enviado un Map como parametros de la peticon del API
+    final _respuesta = await _tareasProvider.setTarea({
+      'token' : VariableEntornoUtils.TOKEN,
+      'title' : _myControllerTitulo.text,
+      'is_completed' : _checkBoxCompleta ? '1' : '0',
+      'due_date' : DateFormat('yyyy-MM-dd','es_ES').format(_fechaSeleccionada), //'2021-12-12', //_myControllerFecha.text
+      'comments' : _myControllerComentarios.text,
+      'description' : _myControllerDescripcion.text,
+      'tags' : _tags
+    });
+
+    if (_respuesta['status'] != 200) { // Los datos fueron registrados
+      progressDialog.dismiss(); // Terminamos la animacion del dialogo de carga
+      _cargarDatos(_respuesta['mensaje']); // Ejecutamos el método de la vista de inicio
+      Navigator.of(context).pop(); 
+
+    } else { // Problemas al registrar los datos
+      progressDialog.dismiss(); // Terminamos la animacion del dialogo de carga
+      return MensajeErrorUtil(context: context, mensaje: _respuesta['mensaje']).showMensaje(); // Mostramos el mensaje de error
+    }
 
   }
 

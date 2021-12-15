@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => FiltroTareasProvider(2),
+      create: (_) => FiltroTareasProvider(2), // Creamos el estado del fintro de tareas
       child: MaterialApp(
         localizationsDelegates: const [
           GlobalMaterialLocalizations.delegate,
@@ -27,9 +27,9 @@ class MyApp extends StatelessWidget {
           primaryColor: const Color(0xFF34495E),
           scaffoldBackgroundColor: const Color(0xFFF2F3F4)
         ),
-        routes: MyRouters().getApplicationRoutes(),
+        routes: MyRouters().getApplicationRoutes(), // Mandamos a llemar a nuestra clase de rutas
         initialRoute: '/',
-        onGenerateRoute: (RouteSettings settings) {
+        onGenerateRoute: (RouteSettings settings) { // Creamos una ruta de escape cuando no se encuentre la ruta dentro de nuesta clase MyRouters
           return MaterialPageRoute(
             builder: (BuildContext context) => const ErrorPage()
           );

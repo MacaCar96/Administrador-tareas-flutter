@@ -73,12 +73,6 @@ class _ListaTareasState extends State<ListaTareas> {
                 'task_id' : '${widget.data![index].id!}'
               });
             },
-            /* onTap: () {
-              Navigator.pushNamed(context, '/editar-tarea', arguments: {
-                'cargar_datos' : null,
-                'task_id' : '${widget.data![index].id!}'
-              });
-            }, */
           ),
         );
         

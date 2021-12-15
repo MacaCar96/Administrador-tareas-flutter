@@ -1,4 +1,5 @@
 
+import 'package:admin_tareas/src/utils/mensaje_error_util.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:ndialog/ndialog.dart';
@@ -50,27 +51,27 @@ class _EditarTareaPageState extends State<EditarTareaPage> {
         foregroundColor: Colors.black,
         elevation: 0.0,
         automaticallyImplyLeading: false,
-        leading: IconButton(
+        leading: IconButton( // Personalizamos el icono de regresar por el icono de close(X)
           icon: const Icon(Icons.close),
-          onPressed: () {
-            Navigator.pop(context);
-          }, 
+          onPressed: () => Navigator.pop(context), 
         ),
         title: const Text('Editar tarea'),
       ),
-      body: FutureBuilder(
+      body: FutureBuilder( // Utilizaremos FutureBuilder para recuperar la información de la API
         future: _tareasProvider.getTareaId(taskId),
         builder: (BuildContext context, AsyncSnapshot<Tareas?> snapshot) {
+
+          // Hasta que no haya data mostraremos CircularProgressIndicator con efecto de animación de que esta cargando la información
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator(),);
           }
 
+          // Si hay data comprobaremos de que no venga nula
           if (snapshot.data != null) {
-
             return _crearBody(snapshot.data);
-            
           }
 
+          // Encaso de que la data venga nula mostraremos un mensaje
           return const Center(child: Text('Al parecer hubo un error a la hora de cargar los datos'),);
         }
       ),
@@ -78,8 +79,6 @@ class _EditarTareaPageState extends State<EditarTareaPage> {
   }
 
   Widget _crearBody(Tareas? tarea) {
-
-    
   
     // Validamos la carga de información recuperada
     if (!_statusInformacionRecuperada) {
@@ -104,6 +103,7 @@ class _EditarTareaPageState extends State<EditarTareaPage> {
       padding: const EdgeInsets.all(15.0),
       children: [
         
+        // Campo titulo
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -123,6 +123,7 @@ class _EditarTareaPageState extends State<EditarTareaPage> {
         ),
         const SizedBox(height: 25.0,),
 
+        // Campo fecha
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -138,14 +139,14 @@ class _EditarTareaPageState extends State<EditarTareaPage> {
                 //labelText: 'Fecha',
               ),
               onTap: () async {
-                FocusScope.of(context).requestFocus(FocusNode());
+                FocusScope.of(context).requestFocus(FocusNode()); // Anulamos la salida del techado
 
+                // Abrimos el calendario con la funcion de FechaUtil que creamos para obtener la fecha seleccionada
                 final picked = await FechaUtil(context: context, dateSelected: _fechaSeleccionada).getObtenerFecha();
 
-                //print('Fecha seleccionada: $picked');
-                if (picked != null) {
+                if (picked != null) { // Comprobamos de que se haya seleccionado alguna fecha
                   _fechaSeleccionada = picked;
-                  _myControllerFecha.text = DateFormat.yMMMMEEEEd('es_ES').format(_fechaSeleccionada);
+                  _myControllerFecha.text = DateFormat.yMMMMEEEEd('es_ES').format(_fechaSeleccionada); // Pasamos la fecha seleccionada al campo fecha
                   
                   setState(() { });
                 }
@@ -155,6 +156,7 @@ class _EditarTareaPageState extends State<EditarTareaPage> {
         ),
         const SizedBox(height: 25.0,),
 
+        // Campo comentarios
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -179,6 +181,7 @@ class _EditarTareaPageState extends State<EditarTareaPage> {
         ),
         const SizedBox(height: 25.0,),
 
+        // Campo descripción
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -203,6 +206,7 @@ class _EditarTareaPageState extends State<EditarTareaPage> {
         ),
         const SizedBox(height: 25.0,),
 
+        // Campo de tags
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -236,30 +240,14 @@ class _EditarTareaPageState extends State<EditarTareaPage> {
                 textFieldBorder: const UnderlineInputBorder(),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 8.0),
               ),
-              onTag: (tag) {
-                
-                _listaTags.add(tag);
-                print('Resultado de Tags: ${_listaTags.toString()}');
-
-              },
-              onDelete: (tag) {
-
-                _listaTags.remove(tag);
-                print('Tag eliminado: $tag');
-                print('Resultado de Tags: ${_listaTags.toString()}');
-
-              },
-              validator: (tag){
-                /* if(tag.length>15){
-                  return "hey that's too long";
-                }
-                return null; */
-              } 
+              onTag: (tag) { _listaTags.add(tag); }, // Recuperamos el nuevo tag
+              onDelete: (tag) { _listaTags.remove(tag); }, // Eliminamos el tag de la lista
             )
           ],
         ),
         const SizedBox(height: 15.0,),
 
+        // Campo de tarea terminada
         CheckboxListTile(
           controlAffinity: ListTileControlAffinity.leading,
           title: const Text('Tarea terminada',  style: TextStyle(fontSize: 13.0, fontWeight: FontWeight.w300)),
@@ -272,6 +260,7 @@ class _EditarTareaPageState extends State<EditarTareaPage> {
         ),
         const SizedBox(height: 25.0,),
 
+        // Botón de eliminar tarea
         Row(
           children: [
             Expanded(
@@ -286,71 +275,39 @@ class _EditarTareaPageState extends State<EditarTareaPage> {
                   child: const Text('Eliminar'),
                   onPressed: () async {
 
-                    ProgressDialog progressDialog = ProgressDialog(context, 
-                      title:const Text("Eliminando"), 
-                      message:const Text("Espera por favor...")
+                    // Mandamos un mensaje de confirmación antes de eliminar la tarea
+                    return showDialog<void>(
+                      context: context,
+                      barrierDismissible: true,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          title: const Text('Notificación'),
+                          content: SingleChildScrollView(
+                            child: ListBody(
+                              children: const <Widget>[
+                                Text('¿Esta seguro de eliminar la tarea?'),
+                              ],
+                            ),
+                          ),
+                          actions: <Widget>[
+                            TextButton(
+                              child: const Text('Cancelar', style: TextStyle(color: Colors.black38),),
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                            TextButton(
+                              child: const Text('Confirmar', style: TextStyle(color: Colors.red),),
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                                _onCallbackConfirmacionEliminar('${tarea?.id}');
+                              },
+                            ),
+                          ],
+                        );
+                      },
                     );
-                    progressDialog.show();
-
-                    final _respuesta = await _tareasProvider.setTareaIdEliminar('${tarea?.id}');
-            
-                    if (_respuesta['status'] != 200) { // Los datos fueron registrados
-                      progressDialog.dismiss();
-                      _cargarDatos();
-            
-                      return showDialog<void>(
-                        context: context,
-                        barrierDismissible: false,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: const Text('Notificación'),
-                            content: SingleChildScrollView(
-                              child: ListBody(
-                                children: <Widget>[
-                                  Text('${_respuesta['mensaje']}'),
-                                ],
-                              ),
-                            ),
-                            actions: <Widget>[
-                              TextButton(
-                                child: const Text('Aceptar'),
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                  Navigator.of(context).pop();
-                                },
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                      
-                    } else { // Problemas al registrar los datos
-                      progressDialog.dismiss();
-                      return showDialog<void>(
-                        context: context,
-                        barrierDismissible: false,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: const Text('Notificación'),
-                            content: SingleChildScrollView(
-                              child: ListBody(
-                                children: <Widget>[
-                                  Text('${_respuesta['mensaje']}'),
-                                ],
-                              ),
-                            ),
-                            actions: <Widget>[
-                              TextButton(
-                                child: const Text('Aceptar'),
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                    }
             
                   }
                 ),
@@ -367,98 +324,7 @@ class _EditarTareaPageState extends State<EditarTareaPage> {
                   color: Colors.blue,
                   textColor: Colors.blue,
                   child: const Text('Guardar'),
-                  onPressed: () async {
-
-                    ProgressDialog progressDialog = ProgressDialog(context, 
-                      title:const Text("Guardando"), 
-                      message:const Text("Espera por favor...")
-                    );
-                    progressDialog.show();
-            
-                    // Vamos a sacar todos los valores de nuestro arreglo de Tags
-                    // y los iremos concatenado cada unos de los Tags con una (,) de separador
-                    String _tags = '';
-                    for (var i = 0; i < _listaTags.length; i++) {
-                      if (i == 0) {
-                        _tags = '${_listaTags[i]}';
-                      } else {
-                        _tags = '$_tags,${_listaTags[i]}';
-                      }
-                    }
-            
-                    // Preparando la consulta y enviado un Map como parametros de la peticon del API
-                    final _respuesta = await _tareasProvider.setTareaIdActualizar(
-                      '${tarea?.id}' ,
-                      {
-                        'token' : VariableEntornoUtils.TOKEN,
-                        'title' : _myControllerTitulo.text,
-                        'is_completed' : _checkBoxCompleta ? '1' : '0',
-                        'due_date' : DateFormat('yyyy-MM-dd','es_ES').format(_fechaSeleccionada),
-                        'comments' : _myControllerComentarios.text,
-                        'description' : _myControllerDescripcion.text,
-                        'tags' : _tags
-                      }
-                    );
-            
-                    if (_respuesta['status'] != 200) { // Los datos fueron registrados
-                      progressDialog.dismiss();
-                      _cargarDatos();
-            
-                      return showDialog<void>(
-                        context: context,
-                        barrierDismissible: false,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: const Text('Notificación'),
-                            content: SingleChildScrollView(
-                              child: ListBody(
-                                children: <Widget>[
-                                  Text('${_respuesta['mensaje']}'),
-                                ],
-                              ),
-                            ),
-                            actions: <Widget>[
-                              TextButton(
-                                child: const Text('Aceptar'),
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                  Navigator.of(context).pop();
-                                },
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                      
-                    } else { // Problemas al registrar los datos
-                      progressDialog.dismiss();
-                      return showDialog<void>(
-                        context: context,
-                        barrierDismissible: false,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: const Text('Notificación'),
-                            content: SingleChildScrollView(
-                              child: ListBody(
-                                children: <Widget>[
-                                  Text('${_respuesta['mensaje']}'),
-                                ],
-                              ),
-                            ),
-                            actions: <Widget>[
-                              TextButton(
-                                child: const Text('Aceptar'),
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                    }
-            
-                  }
+                  onPressed: () async => _onCallbackGuardar('${tarea?.id}')
                 ),
               ),
             ),
@@ -468,7 +334,81 @@ class _EditarTareaPageState extends State<EditarTareaPage> {
       ],
     );
 
+  }
 
+  void _onCallbackGuardar(String id) async {
+    if (_myControllerTitulo.text.isEmpty) { // Validamos el campo del titulo
+      return MensajeErrorUtil(context: context, mensaje: 'El campo del titulo es requerido.').showMensaje(); // Mostramos el mensaje de error
+    }
+
+    // Preparamos nuestros ProgressDialog para animar el progreso de la carga
+    ProgressDialog progressDialog = ProgressDialog(context, 
+      title:const Text("Guardando"), 
+      message:const Text("Espera por favor...")
+    );
+
+    progressDialog.show(); // Mostramos el ProgressDialog
+
+    // Vamos a sacar todos los valores de nuestro arreglo de Tags
+    // y los iremos concatenado cada unos de los Tags con una (,) de separador
+    String _tags = '';
+    for (var i = 0; i < _listaTags.length; i++) {
+      if (i == 0) {
+        _tags = '${_listaTags[i]}';
+      } else {
+        _tags = '$_tags,${_listaTags[i]}';
+      }
+    }
+
+    // Preparando la consulta y enviado un Map como parametros de la peticon del API
+    final _respuesta = await _tareasProvider.setTareaIdActualizar(
+      id ,
+      {
+        'token' : VariableEntornoUtils.TOKEN,
+        'title' : _myControllerTitulo.text,
+        'is_completed' : _checkBoxCompleta ? '1' : '0',
+        'due_date' : DateFormat('yyyy-MM-dd','es_ES').format(_fechaSeleccionada),
+        'comments' : _myControllerComentarios.text,
+        'description' : _myControllerDescripcion.text,
+        'tags' : _tags
+      }
+    );
+
+    if (_respuesta['status'] != 200) { // Los datos fueron registrados
+      progressDialog.dismiss(); // Terminamos la animacion del dialogo de carga
+      _cargarDatos(_respuesta['mensaje']); // Ejecutamos el método de la vista de inicio
+      Navigator.of(context).pop(); 
+
+    } else { // Problemas al registrar los datos
+      progressDialog.dismiss(); // Terminamos la animacion del dialogo de carga
+      return MensajeErrorUtil(context: context, mensaje: _respuesta['mensaje']).showMensaje(); // Mostramos el mensaje de error
+      
+    }
+  }
+
+  void _onCallbackConfirmacionEliminar(String id) async {
+
+    // Preparamos nuestros ProgressDialog para animar el progreso de la carga
+    ProgressDialog progressDialog = ProgressDialog(context, 
+      title:const Text("Eliminando"), 
+      message:const Text("Espera por favor...")
+    );
+
+    progressDialog.show(); // Mostramos el ProgressDialog
+
+    // Preparamos la consulta y esperamos el resultado
+    final _respuesta = await _tareasProvider.setTareaIdEliminar(id);
+
+    if (_respuesta['status'] != 200) { // La tarea fue eliminada con éxito
+      progressDialog.dismiss(); // Terminamos la animacion del dialogo de carga
+      _cargarDatos(_respuesta['mensaje']); // Ejecutamos el método de la vista de inicio
+      Navigator.pop(context);
+      
+      
+    } else { // Problemas al eliminar los datos
+      progressDialog.dismiss(); // Terminamos la animacion del dialogo de carga
+      return MensajeErrorUtil(context: context, mensaje: _respuesta['mensaje']).showMensaje(); // Mostramos el mensaje de error
+    }
   }
   
 }

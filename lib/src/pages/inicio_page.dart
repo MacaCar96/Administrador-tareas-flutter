@@ -1,12 +1,13 @@
 
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:admin_tareas/src/providers/filtro_tareas_provider.dart';
 import 'package:admin_tareas/src/widgets/lista_tareas.dart';
 import 'package:admin_tareas/src/widgets/menu_vertical.dart';
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:admin_tareas/src/models/tareas_model.dart';
 import 'package:admin_tareas/src/providers/tareas_provider.dart';
-import 'package:provider/provider.dart';
 
 class InicioPage extends StatefulWidget {
   const InicioPage({Key? key}) : super(key: key);
@@ -18,16 +19,19 @@ class InicioPage extends StatefulWidget {
 
 class _InicioPageState extends State<InicioPage> {
 
-  String tituloAppBar = 'Todas las tareas';
+  String tituloAppBar = 'Todas las tareas'; // Creamos una variable para guardar temporalmente el titulo de appBar
+
+  // Variables para controlar el estado activo del item del menú
   bool _isTodas = true;
   bool _isTerminadas = false;
   bool _isPendientes = false;
 
-  final _tareasProvider = TareasProvider();
+  final _tareasProvider = TareasProvider(); // Instacia a las TareasProvider para acceder a los métodos de las consultas
 
-  var formatter = DateFormat.yMMMMEEEEd('es_ES');
-  String capitalize(String s) => s[0].toUpperCase() + s.substring(1);
+  var formatter = DateFormat.yMMMMEEEEd('es_ES'); // Instancia de un formato de fecha
+  String capitalize(String s) => s[0].toUpperCase() + s.substring(1); // Método para poner la primera letra mayúscula de algún texto
 
+  // Método para actualizar el item seleccionado del menú vertical
   void _activeMenu(bool todas, bool terminadas, bool pendientes) {
     _isTodas = todas;
     _isTerminadas = terminadas;
@@ -37,8 +41,9 @@ class _InicioPageState extends State<InicioPage> {
   @override
   Widget build(BuildContext context) {
 
-    final filtroTareas = Provider.of<FiltroTareasProvider>(context);
+    final filtroTareas = Provider.of<FiltroTareasProvider>(context); // Creamos la instancia a nuestro provider de estado
 
+    // Control de los filtros de la tarea
     if (filtroTareas.filtro == 0) {
       tituloAppBar = 'Pendientes';
       _activeMenu(false, false, true);
@@ -59,82 +64,28 @@ class _InicioPageState extends State<InicioPage> {
         title: Text(tituloAppBar),
       ),
       drawer: MenuVertical(isTodas: _isTodas, isTerminadas: _isTerminadas, isPendientes: _isPendientes,),
-      /* drawer:  Drawer(
-        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.only(topRight: Radius.circular(20.0), bottomRight: Radius.circular(20.0))),
-        child: SafeArea(
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  children: [
-                    const Expanded(
-                      child: Text('Admin. de tareas', style: TextStyle(
-                        fontSize: 22.0,
-                        fontWeight: FontWeight.w600
-                      ), textAlign: TextAlign.center,),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.settings),
-                      onPressed: () {}, 
-                    ),
-                  ],
-                ),
-              ),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8.0),
-                child: Divider(height: 0.0,),
-              ),
-              const SizedBox(height: 15.0,),
-              Ink(
-                child: ListTile(
-                  leading: const Icon(Icons.all_inbox),
-                  title: const Text('Todas las tareas'),
-                  dense: true,
-                  onTap: () {},
-                ),
-              ),
-              Ink(
-                child: ListTile(
-                  leading: const Icon(Icons.checklist_rtl_rounded),
-                  title: const Text('Terminadas'),
-                  dense: true,
-                  onTap: () {},
-                ),
-              ),
-              Ink(
-                child: ListTile(
-                  leading: const Icon(Icons.pending_actions_rounded),
-                  title: const Text('Perndientes'),
-                  dense: true,
-                  onTap: () {},
-                ),
-              )
-            ],
-          ),
-        ),
-      ), */
       body: FutureBuilder(
         future: _tareasProvider.getTareas(),
         builder: (BuildContext context, AsyncSnapshot<List<Tareas>> snapshot) {
 
+          // Hasta que no haya data mostraremos CircularProgressIndicator con efecto de animación de que esta cargando la información
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator(),);
           }
 
-          if (snapshot.data!.length > 0) {
+          if (snapshot.data!.length > 0) { // Si hay data comprobaremos de que no venga nula
 
-            //return _lista(snapshot.data);
+            // Retornamos el Widget personalizado que hemos creado para la lista de tareas
             return ListaTareas(
-              data: snapshot.data, 
-              filtroTareas: filtroTareas.filtro,
-              onCallback: _cargarDatos,
+              data: snapshot.data, // Lista de tareas
+              filtroTareas: filtroTareas.filtro, // Filtro 
+              onCallback: _cargarDatos, // Evento de mensaje y actulizacion de los datos registrados, eliminados y actualizados
             );
             
           }
 
+          // Encaso de que la data venga nula mostraremos un mensaje
           return const Center(child: Text('No hay tareas pendientes'),);
-
           
         }
       ),
@@ -148,42 +99,18 @@ class _InicioPageState extends State<InicioPage> {
             'cargar_datos' : _cargarDatos
           });
         },
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      ), 
     );
   }
 
-  Widget _lista(List<Tareas>? data) {
-
-    return ListView.builder(
-      padding: const EdgeInsets.only(bottom: 100.0),
-      itemCount: data?.length,
-      itemBuilder: (BuildContext context, int index) {
-
-        return Card(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
-          elevation: 0.0,
-          child: ListTile(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
-            leading: Icon(Icons.article, color: data![index].isCompleted == 1 ? Colors.green : null,),
-            title: Text(data[index].title!),
-            //subtitle: Text(data[index].dueDate!),
-            subtitle: Text(capitalize(formatter.format(DateTime.parse(data[index].dueDate!)))),
-            onTap: () {
-              Navigator.pushNamed(context, '/editar-tarea', arguments: {
-                'cargar_datos' : _cargarDatos,
-                'task_id' : '${data[index].id!}'
-              });
-            },
-          ),
-        );
-        
-      }
-    
+  // Mensaje y actualización de los eventos de registro, actualizar y eliminar de las tareas
+  void _cargarDatos(String mensaje) {
+    Fluttertoast.showToast(
+      msg: mensaje, 
+      toastLength: Toast.LENGTH_LONG, 
+      gravity: ToastGravity.BOTTOM, 
+      backgroundColor: const Color.fromRGBO(0, 0, 0, 0.5)
     );
-
-  }
-
-  void _cargarDatos() {
     setState(() {});
   }
 

@@ -15,20 +15,10 @@ class TareasModel {
 
   }
 
-  TareasModel.fromJsonListTareasId(List<dynamic>? jsonList) {
-    if (jsonList == null) return;
-
-    for (var i = 0; i < jsonList.length; i++) {
-      final tareas = Tareas.fromJsonMapTareasId(jsonList[i]);
-      items.add(tareas);
-    }
-
-  }
-
-
-
 }
 
+// Creamos nuestra clase de tareas que nos ayudara a mantener guardados temporalmente los datos 
+// que traigan las API
 class Tareas {
 
   int? id;

@@ -14,5 +14,4 @@ class VariableEntornoUtils {
   static String API_PUT_TAREA_ID = '$API_DOMINIO/vdev/tasks-challenge/tasks/'; // API actualizar la información de una tarea
   static String API_DELETE_TAREA_ID = '$API_DOMINIO/vdev/tasks-challenge/tasks/'; // API eliminar tarea
 
-  static int FILTRO_TAREAS = 2;
 }

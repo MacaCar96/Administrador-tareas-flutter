@@ -20,10 +20,6 @@ class MenuVertical extends StatefulWidget {
 
 class _MenuVerticalState extends State<MenuVertical> {
 
-  /* bool _isTodas = true;
-  bool _isTerminadas = false;
-  bool _isPendientes = false; */
-
   @override
   Widget build(BuildContext context) {
 
@@ -97,9 +93,5 @@ class _MenuVerticalState extends State<MenuVertical> {
       ),
     );
   }
-
-  /* void _seleccionMenu(bool todas, bool terminadas, bool pendientes) {
-
-  } */
 
 }

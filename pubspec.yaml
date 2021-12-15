@@ -41,6 +41,7 @@ dependencies:
   textfield_tags: ^1.4.2
   ndialog: ^4.1.0
   provider: ^6.0.1
+  fluttertoast: ^8.0.8
 
 dev_dependencies:
   flutter_test:
